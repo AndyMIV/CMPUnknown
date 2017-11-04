@@ -25,6 +25,17 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+
+	//Custom Functions
+	UFUNCTION(BlueprintCallable, Category = "Health")
+		int GetHealth();
+
+	UFUNCTION(BlueprintCallable, Category = "Health")
+		void SetHealth(int HealthInput);
+
+
+private: 
+	int Health = 0;
 	
 	
 };

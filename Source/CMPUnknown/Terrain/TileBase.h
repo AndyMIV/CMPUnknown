@@ -48,10 +48,7 @@ struct FaiVariables {
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY(BlueprintReadWrite, Category = "Setup")
-		int MinSpawn = 1;
-
-	UPROPERTY(BlueprintReadWrite, Category = "Setup")
-		int MaxSpawn = 1;
+		int Health = 100;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Setup")
 		float MaxScale = 1;
@@ -60,13 +57,11 @@ struct FaiVariables {
 		float MinScale = 1;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Setup")
-		int Health = 100;
+		int PercentUtilized = 100;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Setup")
-		float Delay = 100;
+		bool isConstant = 0;
 
-	UPROPERTY(BlueprintReadWrite, Category = "Setup")
-		float PercentUtilized = 100;
 
 };
 
@@ -114,6 +109,9 @@ private:
 	void RandomlyPlaceActors(TSubclassOf<AActor> ToSpawn, FItemVariables ItemVariables);
 	void PlaceTheActor(TSubclassOf<AActor> ToSpawn, FSpawnPosition PositionActor, bool IsLive);
 	void PlaceTheActor(TSubclassOf<APawn> ToSpawn, FSpawnPosition PositionActor);
+
+	int ConstantContainer = 0;
+	void ChangeConstant();
 
 	TArray<AActor*> ItemsArray;
 	TArray<APawn*> AIArray;

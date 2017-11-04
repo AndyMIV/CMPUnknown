@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "CMPUnknown.h"
+#include "Character/MannequinBaseEnemy.h"
 #include "DrawDebugHelpers.h"
 #include "ActorPool.h"
 #include "TileBase.h"
@@ -79,6 +80,7 @@ void ATileBase::PlaceTheActor(TSubclassOf<AActor> ToSpawn, FSpawnPosition Positi
 
 		if (IsLive) {
 			AICrateArray.Push(SpawnedActor);
+			ConstantContainer = FMath::RandRange(0, AICrateArray.Num() - 1);
 		}
 	}
 
@@ -106,46 +108,70 @@ bool ATileBase::CastSphere(FVector Location, float Radius) {
 /// Placing AI
 
 void ATileBase::PlaceAI(TSubclassOf<APawn> ToSpawn, FaiVariables aiVariables) {
-
-	int CrateRange = AICrateArray.Num() * aiVariables.PercentUtilized / 100;
-	int NumberToSpawn = FMath::RandRange(aiVariables.MinSpawn, aiVariables.MaxSpawn);
-
-	for (int loop = 0, i = 0; loop < NumberToSpawn; loop++, i++)
-	{
-		if (i > CrateRange) {
-			i = 0;
-		}
-		FSpawnPosition SpawnPosition;
-
-		SpawnPosition.Location = AICrateArray[i]->GetActorLocation();
-		SpawnPosition.Rotation = AICrateArray[i]->GetActorRotation().Yaw;
-
-		SpawnPosition.Scale = FMath::RandRange(aiVariables.MinScale, aiVariables.MaxScale);
-
-		PlaceTheActor(ToSpawn, SpawnPosition);
-
-		// TODO: delay
+	if (AICrateArray.Num() < 1) {
+		UE_LOG(LogTemp, Warning, TEXT("No items in AICrateArray"));
+		return;
 	}
 
+	int CrateRange = (int)AICrateArray.Num() * aiVariables.PercentUtilized / 100;
+	if (CrateRange < 1) {
+		UE_LOG(LogTemp, Warning, TEXT("CrateRange is less than 1"));
+		return;
+	}
+	
+	int i = FMath::RandRange(0, CrateRange - 1);
+	if (aiVariables.isConstant) {
+		i = ConstantContainer;
+	}
+
+
+	FSpawnPosition SpawnPosition;
+	SpawnPosition.Location = AICrateArray[i]->GetActorLocation();
+
+	int tempSpawn = (int)SpawnPosition.Location.Y;
+	tempSpawn %= 4096;
+
+	SpawnPosition.Location.Y = (float)tempSpawn;
+
+
+
+	SpawnPosition.Rotation = AICrateArray[i]->GetActorRotation().Yaw + 90;
+	SpawnPosition.Scale = FMath::RandRange(aiVariables.MinScale, aiVariables.MaxScale);
+
+	PlaceTheActor(ToSpawn, SpawnPosition);
 }
+
 
 void ATileBase::PlaceTheActor(TSubclassOf<APawn> ToSpawn, FSpawnPosition PositionActor) {
 
+	UE_LOG(LogTemp, Warning, TEXT("Spawning AI"));
+
 	APawn* SpawnedPawn = GetWorld()->SpawnActor<APawn>(ToSpawn);
 	if (SpawnedPawn) {
-		SpawnedPawn->SetActorRelativeLocation(PositionActor.Location + FVector(0, 0, 200));
+		UE_LOG(LogTemp, Warning, TEXT("AI attaching to world"));
+		SpawnedPawn->SetActorLocation(PositionActor.Location + FVector(0, 0, 10));
 		SpawnedPawn->AttachToActor(this, FAttachmentTransformRules(EAttachmentRule::KeepRelative, false));
 		SpawnedPawn->SetActorRotation(FRotator(0, PositionActor.Rotation, 0));
 		SpawnedPawn->SpawnDefaultController();
 		SpawnedPawn->Tags.Add(FName("Enemy"));
 
-		// TODO: setup health on AI
+		auto CastedPawn = Cast<AMannequinBaseEnemy>(SpawnedPawn);
+		if (CastedPawn) {
+			CastedPawn->SetHealth(100);
+		}
 
 		AIArray.Add(SpawnedPawn);
 	}
 
 }
 
+
+// changes the spawning container when isConstant is 1
+void ATileBase::ChangeConstant() {
+	if (AICrateArray.Num() > 0) {
+		ConstantContainer = FMath::RandRange(0, AICrateArray.Num() - 1);
+	}
+}
 
 
 // Called when the game starts or when spawned
