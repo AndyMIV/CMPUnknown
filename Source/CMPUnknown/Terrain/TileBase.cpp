@@ -13,6 +13,7 @@ ATileBase::ATileBase()
  	
 	MinBoxSize = FVector(-2048.0, 0, 64.0);
 	MaxBoxSize = FVector(2048.0, -4096.0, 64.0);
+	YTileSize = 4096;
 
 	NavigationBoundsOffset = FVector(2048, 0, 0);
 
@@ -126,15 +127,17 @@ void ATileBase::PlaceAI(TSubclassOf<APawn> ToSpawn, FaiVariables aiVariables) {
 
 
 	FSpawnPosition SpawnPosition;
-	SpawnPosition.Location = AICrateArray[i]->GetActorLocation();
 
-	int tempSpawn = (int)SpawnPosition.Location.Y;
-	tempSpawn %= 4096;
-
-	SpawnPosition.Location.Y = (float)tempSpawn;
+	// SpawnPosition.Location = AICrateArray[i]->GetActorLocation();
+	// int tempSpawn = (int)SpawnPosition.Location.Y;
+	// FVector offset = AICrateArray[i]->GetActorLocation() - TileOffset;
 
 
+	// tempSpawn %= YTileSize;
+	// SpawnPosition.Location.Y = (float)tempSpawn;
 
+
+	SpawnPosition.Location = AICrateArray[i]->GetActorLocation() - this->GetActorLocation();
 	SpawnPosition.Rotation = AICrateArray[i]->GetActorRotation().Yaw + 90;
 	SpawnPosition.Scale = FMath::RandRange(aiVariables.MinScale, aiVariables.MaxScale);
 
