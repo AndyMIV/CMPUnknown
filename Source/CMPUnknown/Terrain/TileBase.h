@@ -54,6 +54,12 @@ struct FaiVariables {
 		int MaxSpawn = 1;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Setup")
+		float MaxScale = 1;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Setup")
+		float MinScale = 1;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Setup")
 		int Health = 100;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Setup")
@@ -107,8 +113,10 @@ private:
 
 	void RandomlyPlaceActors(TSubclassOf<AActor> ToSpawn, FItemVariables ItemVariables);
 	void PlaceTheActor(TSubclassOf<AActor> ToSpawn, FSpawnPosition PositionActor, bool IsLive);
+	void PlaceTheActor(TSubclassOf<APawn> ToSpawn, FSpawnPosition PositionActor);
 
 	TArray<AActor*> ItemsArray;
+	TArray<APawn*> AIArray;
 	TArray<AActor*> AICrateArray;
 
 	void PositionNavMeshBoundsVolume();

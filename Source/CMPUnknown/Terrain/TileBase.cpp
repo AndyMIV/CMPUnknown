@@ -107,7 +107,42 @@ bool ATileBase::CastSphere(FVector Location, float Radius) {
 
 void ATileBase::PlaceAI(TSubclassOf<APawn> ToSpawn, FaiVariables aiVariables) {
 
-	// TODO: place actors
+	int CrateRange = AICrateArray.Num() * aiVariables.PercentUtilized / 100;
+	int NumberToSpawn = FMath::RandRange(aiVariables.MinSpawn, aiVariables.MaxSpawn);
+
+	for (int loop = 0, i = 0; loop < NumberToSpawn; loop++, i++)
+	{
+		if (i > CrateRange) {
+			i = 0;
+		}
+		FSpawnPosition SpawnPosition;
+
+		SpawnPosition.Location = AICrateArray[i]->GetActorLocation();
+		SpawnPosition.Rotation = AICrateArray[i]->GetActorRotation().Yaw;
+
+		SpawnPosition.Scale = FMath::RandRange(aiVariables.MinScale, aiVariables.MaxScale);
+
+		PlaceTheActor(ToSpawn, SpawnPosition);
+
+		// TODO: delay
+	}
+
+}
+
+void ATileBase::PlaceTheActor(TSubclassOf<APawn> ToSpawn, FSpawnPosition PositionActor) {
+
+	APawn* SpawnedPawn = GetWorld()->SpawnActor<APawn>(ToSpawn);
+	if (SpawnedPawn) {
+		SpawnedPawn->SetActorRelativeLocation(PositionActor.Location + FVector(0, 0, 200));
+		SpawnedPawn->AttachToActor(this, FAttachmentTransformRules(EAttachmentRule::KeepRelative, false));
+		SpawnedPawn->SetActorRotation(FRotator(0, PositionActor.Rotation, 0));
+		SpawnedPawn->SpawnDefaultController();
+		SpawnedPawn->Tags.Add(FName("Enemy"));
+
+		// TODO: setup health on AI
+
+		AIArray.Add(SpawnedPawn);
+	}
 
 }
 
@@ -124,6 +159,10 @@ void  ATileBase::EndPlay(const EEndPlayReason::Type EndPlayReason) {
 
 	for (int i = 0; i < ItemsArray.Num(); i++) {
 		ItemsArray[i]->Destroy();
+	}
+
+	for (int i = 0; i < AIArray.Num(); i++) {
+		AIArray[i]->Destroy();
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("%s End play"), *GetName());
