@@ -5,6 +5,8 @@
 #include "GameFramework/Actor.h"
 #include "TileBase.generated.h"
 
+
+
 USTRUCT()
 struct FSpawnPosition {
 	GENERATED_USTRUCT_BODY()
@@ -17,7 +19,7 @@ struct FSpawnPosition {
 
 // BlueprintType not necesarilly needed. just split the pin in BP
 USTRUCT(BlueprintType)
-struct FInputVariables {
+struct FItemVariables {
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY(BlueprintReadWrite, Category = "Setup")
@@ -35,8 +37,34 @@ struct FInputVariables {
 	UPROPERTY(BlueprintReadWrite, Category = "Setup")
 		float MinScale = 1;
 
+	UPROPERTY(BlueprintReadWrite, Category = "Setup")
+		bool IsLive = false;
+
 
 };
+
+USTRUCT(BlueprintType)
+struct FaiVariables {
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(BlueprintReadWrite, Category = "Setup")
+		int MinSpawn = 1;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Setup")
+		int MaxSpawn = 1;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Setup")
+		int Health = 100;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Setup")
+		float Delay = 100;
+
+	UPROPERTY(BlueprintReadWrite, Category = "Setup")
+		float PercentUtilized = 100;
+
+};
+
+class UActorPool;
 
 UCLASS()
 class CMPUNKNOWN_API ATileBase : public AActor
@@ -49,7 +77,13 @@ public:
 
 	// Blueprint Function
 	UFUNCTION(BlueprintCallable, Category = "Setup")
-		void PlaceActors(TSubclassOf<AActor> ToSpawn, FInputVariables InputVariables);
+		void PlaceActors(TSubclassOf<AActor> ToSpawn, FItemVariables ItemVariables);
+
+	UFUNCTION(BlueprintCallable, Category = "Setup")
+		void PlaceAI(TSubclassOf<APawn> ToSpawn, FaiVariables aiVariables);
+
+	UFUNCTION(BlueprintCallable, Category = "Pool")
+		void SetPool(UActorPool* Pool);
 
 	virtual void Tick(float DeltaTime) override;
 
@@ -63,15 +97,22 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = "Spawning")
 		FVector MaxBoxSize;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Navigation")
+		FVector NavigationBoundsOffset;
+
 	
 private:
 	bool CastSphere(FVector Location, float Radius);
 	bool FindEmptyLocation(FVector& OutLocation, float Radius);
 
-	TArray<AActor*> ItemsArray;
+	void RandomlyPlaceActors(TSubclassOf<AActor> ToSpawn, FItemVariables ItemVariables);
+	void PlaceTheActor(TSubclassOf<AActor> ToSpawn, FSpawnPosition PositionActor, bool IsLive);
 
-	template<class T>
-	void RandomlyPlaceActors(TSubclassOf<T> ToSpawn, FInputVariables InputVariables);
-	void PlaceTheActor(TSubclassOf<AActor> ToSpawn, FSpawnPosition PositionActor);
+	TArray<AActor*> ItemsArray;
+	TArray<AActor*> AICrateArray;
+
+	void PositionNavMeshBoundsVolume();
+	AActor* NavMeshBoundsVolume = nullptr;
+	UActorPool* Pool;
 
 };

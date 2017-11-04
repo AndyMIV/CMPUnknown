@@ -2,6 +2,7 @@
 
 #include "CMPUnknown.h"
 #include "DrawDebugHelpers.h"
+#include "ActorPool.h"
 #include "TileBase.h"
 
 
@@ -12,31 +13,33 @@ ATileBase::ATileBase()
 	MinBoxSize = FVector(-2048.0, 0, 64.0);
 	MaxBoxSize = FVector(2048.0, -4096.0, 64.0);
 
+	NavigationBoundsOffset = FVector(2048, 0, 0);
+
 	PrimaryActorTick.bCanEverTick = true;
 
 }
 
-void ATileBase::PlaceActors(TSubclassOf<AActor> ToSpawn, FInputVariables InputVariables) {
+void ATileBase::PlaceActors(TSubclassOf<AActor> ToSpawn, FItemVariables ItemVariables) {
 
-	RandomlyPlaceActors(ToSpawn, InputVariables);
+	RandomlyPlaceActors(ToSpawn, ItemVariables);
 
 }
 
-template<class T>
-void ATileBase::RandomlyPlaceActors(TSubclassOf<T> ToSpawn, FInputVariables InputVariables) {
+void ATileBase::RandomlyPlaceActors(TSubclassOf<AActor> ToSpawn, FItemVariables ItemVariables) {
 
-	int NumberToSpawn = FMath::RandRange(InputVariables.MinSpawn, InputVariables.MaxSpawn);
+	int NumberToSpawn = FMath::RandRange(ItemVariables.MinSpawn, ItemVariables.MaxSpawn);
 
 	for (int loop = 0; loop < NumberToSpawn; loop++)
 	{
 		FSpawnPosition SpawnPosition;
-		SpawnPosition.Scale = FMath::RandRange(InputVariables.MinScale, InputVariables.MaxScale);
-		float NewRadius = SpawnPosition.Scale * InputVariables.Radius;
+		SpawnPosition.Scale = FMath::RandRange(ItemVariables.MinScale, ItemVariables.MaxScale);
+		float NewRadius = SpawnPosition.Scale * ItemVariables.Radius;
 
 		if (FindEmptyLocation(SpawnPosition.Location, NewRadius))
 		{
 			SpawnPosition.Rotation = FMath::RandRange(-180.0f, 180.0f);
-			PlaceTheActor(ToSpawn, SpawnPosition);
+			bool LiveActor = ItemVariables.IsLive;
+			PlaceTheActor(ToSpawn, SpawnPosition, LiveActor);
 
 		}
 
@@ -64,7 +67,7 @@ bool ATileBase::FindEmptyLocation(FVector& SpawnPoint, float Radius) {
 
 
 
-void ATileBase::PlaceTheActor(TSubclassOf<AActor> ToSpawn, FSpawnPosition PositionActor) {
+void ATileBase::PlaceTheActor(TSubclassOf<AActor> ToSpawn, FSpawnPosition PositionActor, bool IsLive) {
 	AActor* SpawnedActor = GetWorld()->SpawnActor<AActor>(ToSpawn);
 	if (SpawnedActor) {
 		SpawnedActor->SetActorRelativeLocation(PositionActor.Location);
@@ -73,6 +76,10 @@ void ATileBase::PlaceTheActor(TSubclassOf<AActor> ToSpawn, FSpawnPosition Positi
 		SpawnedActor->SetActorScale3D(FVector(PositionActor.Scale));
 
 		ItemsArray.Push(SpawnedActor);
+
+		if (IsLive) {
+			AICrateArray.Push(SpawnedActor);
+		}
 	}
 
 }
@@ -96,6 +103,14 @@ bool ATileBase::CastSphere(FVector Location, float Radius) {
 	return HasHit;
 }
 
+/// Placing AI
+
+void ATileBase::PlaceAI(TSubclassOf<APawn> ToSpawn, FaiVariables aiVariables) {
+
+	// TODO: place actors
+
+}
+
 
 
 // Called when the game starts or when spawned
@@ -110,6 +125,11 @@ void  ATileBase::EndPlay(const EEndPlayReason::Type EndPlayReason) {
 	for (int i = 0; i < ItemsArray.Num(); i++) {
 		ItemsArray[i]->Destroy();
 	}
+
+	UE_LOG(LogTemp, Warning, TEXT("%s End play"), *GetName());
+	if (Pool != nullptr && NavMeshBoundsVolume != nullptr) {
+		Pool->Return(NavMeshBoundsVolume);
+	}
 }
 
 // Called every frame
@@ -118,4 +138,31 @@ void ATileBase::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 }
+
+
+/// Navigation Code
+
+void ATileBase::SetPool(UActorPool* InPool) {
+	Pool = InPool;
+	UE_LOG(LogTemp, Warning, TEXT("Setting pool %s"), *(InPool->GetName()));
+
+	PositionNavMeshBoundsVolume();
+}
+
+void ATileBase::PositionNavMeshBoundsVolume()
+{
+	NavMeshBoundsVolume = Pool->Checkout();
+	if (NavMeshBoundsVolume == nullptr) {
+		UE_LOG(LogTemp, Error, TEXT("Not enough actors in pool!!!"));
+		return;
+	}
+	UE_LOG(LogTemp, Warning, TEXT("Checked out: %s"), *NavMeshBoundsVolume->GetName());
+	NavMeshBoundsVolume->SetActorLocation(GetActorLocation() + NavigationBoundsOffset);
+
+
+	// update navigation system
+	GetWorld()->GetNavigationSystem()->Build();
+}
+
+
 

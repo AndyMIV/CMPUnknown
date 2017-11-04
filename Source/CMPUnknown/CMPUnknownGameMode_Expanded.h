@@ -13,7 +13,18 @@ class CMPUNKNOWN_API ACMPUnknownGameMode_Expanded : public ACMPUnknownGameMode
 {
 	GENERATED_BODY()
 	
-	
+public:
+	ACMPUnknownGameMode_Expanded();
+
+	UFUNCTION(BlueprintCallable, Category = "Setup")
+		void PopulateBoundsVolumePool();
+
+private:
+	void AddToPool(class ANavMeshBoundsVolume *VolumeToAdd);
+
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Pool")
+		class UActorPool* NavMeshBoundsVolumePool;
 	
 	
 };
