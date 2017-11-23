@@ -48,7 +48,7 @@ struct FaiVariables {
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY(BlueprintReadWrite, Category = "Setup")
-		int Health = 100;
+		float Health = 100;
 
 	UPROPERTY(BlueprintReadWrite, Category = "Setup")
 		float MaxScale = 1;
@@ -86,6 +86,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Pool")
 		void SetPool(UActorPool* Pool);
 
+	UFUNCTION(BlueprintCallable, Category = "StartGame")
+		bool CheckIfDead();
+
 	virtual void Tick(float DeltaTime) override;
 
 protected:
@@ -116,8 +119,10 @@ private:
 	int ConstantContainer = 0;
 	void ChangeConstant();
 
+	float Health = 100;
+
 	TArray<AActor*> ItemsArray;
-	TArray<APawn*> AIArray;
+	TArray<AMannequinBaseEnemy*> AIArray;
 	TArray<AActor*> AICrateArray;
 
 	void PositionNavMeshBoundsVolume();

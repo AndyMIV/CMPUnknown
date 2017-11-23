@@ -28,14 +28,14 @@ public:
 
 	//Custom Functions
 	UFUNCTION(BlueprintCallable, Category = "Health")
-		int GetHealth();
+		float GetHealth();
 
 	UFUNCTION(BlueprintCallable, Category = "Health")
-		void SetHealth(int HealthInput);
+		void SetHealth(float HealthInput);
 
 
 private: 
-	int Health = 0;
+	float Health = 0;
 	
 	
 };

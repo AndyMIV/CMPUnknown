@@ -125,6 +125,8 @@ void ATileBase::PlaceAI(TSubclassOf<APawn> ToSpawn, FaiVariables aiVariables) {
 		i = ConstantContainer;
 	}
 
+	Health = aiVariables.Health;
+
 
 	FSpawnPosition SpawnPosition;
 
@@ -160,10 +162,10 @@ void ATileBase::PlaceTheActor(TSubclassOf<APawn> ToSpawn, FSpawnPosition Positio
 
 		auto CastedPawn = Cast<AMannequinBaseEnemy>(SpawnedPawn);
 		if (CastedPawn) {
-			CastedPawn->SetHealth(100);
+			CastedPawn->SetHealth(Health);
+			AIArray.Add(CastedPawn);
 		}
 
-		AIArray.Add(SpawnedPawn);
 	}
 
 }
@@ -205,6 +207,19 @@ void ATileBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+bool ATileBase::CheckIfDead() {
+	if (AIArray.Num() == 0) {
+		return true;
+	}
+
+	for (int i = 0; i < AIArray.Num(); i++) {
+		if (AIArray[i]->GetHealth() > 0) {
+			return false;
+		}
+	}
+	return true;
 }
 
 

@@ -34,12 +34,12 @@ void AMannequinBaseEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInput
 }
 
 
-int  AMannequinBaseEnemy::GetHealth() {
+float AMannequinBaseEnemy::GetHealth() {
 	return Health;
 }
 
 
-void  AMannequinBaseEnemy::SetHealth(int Health) {
+void  AMannequinBaseEnemy::SetHealth(float Health) {
 	this->Health = Health;
 }
 
